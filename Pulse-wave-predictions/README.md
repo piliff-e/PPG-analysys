@@ -1,4 +1,6 @@
-# PPG-predictions
+# PPG-analysys
+## Предсказание поведения пульсовой волны
+
 
 Вот [Google Dock](https://docs.google.com/document/d/1_jPtP8rYmllPkYXyO8yDc0u4-YSvDAZf6ic81Kd2i0A/edit?tab=t.0) с подробным описанием задачи.
 
