@@ -4,7 +4,7 @@ import heartpy as hp
 
 
 """ Извлечение сигналов """
-record = wfdb.rdrecord('../data/s1_walk')  # Чтение данных
+record = wfdb.rdrecord('../test_data/s1_walk')  # Чтение данных
 ppg_ac = record.p_signal[:, 0]  # AC-компонента (пульсовая волна)
 
 
