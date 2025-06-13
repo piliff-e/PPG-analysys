@@ -1,17 +1,18 @@
-import wfdb
+# import wfdb
 import numpy as np
 import heartpy as hp
 import matplotlib.pyplot as plt
+from shared import load_ppg
 
 
-def load_ppg(record_name):
-    """
-    Загрузка PPG-сигнала из WFDB-файлов (.hea/.dat/.atr).
-    """
-    record = wfdb.rdrecord(record_name)
-    signal = record.p_signal[:, 0]  # одномерный список float'ов
-    fs = record.fs  # частота семплирования
-    return signal, fs
+# def load_ppg(record_name):
+#     """
+#     Загрузка PPG-сигнала из WFDB-файлов (.hea/.dat/.atr).
+#     """
+#     record = wfdb.rdrecord(record_name)
+#     signal = record.p_signal[:, 0]  # одномерный список float'ов
+#     fs = record.fs  # частота семплирования
+#     return signal, fs
 
 
 def replace_segments(signal, bad_segments, good_segments):
@@ -30,6 +31,7 @@ def replace_segments(signal, bad_segments, good_segments):
     return out
 
 
+# ТЕСТОВАЯ ФУНКЦИЯ, ПОТОМ БУДЕТ УДАЛЕНА
 def manual_segments():
     """
     Создание вручную "плохих" и "хороших" сегментов для теста.
