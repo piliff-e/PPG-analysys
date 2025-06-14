@@ -10,7 +10,7 @@ def find_bad_segments(original, predicted, threshold=2.0):
     original: numpy array оригинального сигнала
     predicted: numpy array предсказанного сигнала той же (или большей) длины
     threshold: во сколько стандартных отклонений считать аномалией
-    Возвращает список пар (start, end) в индексах, где |original - predicted| > threshold*std.
+    Возвращает список пар (start, end) в индексах, где |original - predicted| > threshold * std.
     """
     # Обрежем predicted до длины original, если нужно
     L = min(len(original), len(predicted))
@@ -51,11 +51,13 @@ def main():
     forecast_results = forecast_signal(filenames, data_path=data_path, repeats=repeats)
 
     # Для каждой записи: загрузка, анализ прогноза, поиск аномалий и замена
-    for name in filenames:
+    # for name in filenames:
+    name = filenames[0]
+    if name in forecast_results:
         print(f"\n--- Обработка записи {name} ---")
         if name not in forecast_results:
             print(f"[!] Прогноз не получен для {name}, пропускаем")
-            continue
+            # continue
 
         # 1. Загрузка оригинального сигнала
         try:
@@ -63,17 +65,17 @@ def main():
             signal, fs = load_ppg(f"{data_path}/{name}")
         except Exception as e:
             print(f"[!] Ошибка загрузки сигнала для {name}: {e}")
-            continue
+            # continue
 
         # 2. Берём прогноз
         forecast_df = forecast_results[name]
         if forecast_df.empty:
             print(f"[!] Прогнозный DataFrame пуст для {name}, пропускаем")
-            continue
+            # continue
         # Извлекаем значения прогноза
         if "NBEATS" not in forecast_df.columns:
             print(f"[!] В прогнозе для {name} нет колонки 'NBEATS', пропускаем")
-            continue
+            # continue
         predicted = forecast_df["NBEATS"].values
         # Обрезаем или дополняем прогноз до длины оригинала:
         if len(predicted) < len(signal):
@@ -86,7 +88,7 @@ def main():
 
         # 3. Поиск «плохих» сегментов
         bad_segments = find_bad_segments(signal, predicted, threshold=2.0)
-        print(f"Найдено плохих сегментов: {bad_segments}")
+        print(f"Найдено {len(bad_segments)} плохих сегментов: {bad_segments}")
 
         # 4. Генерация «хороших» сегментов берём из предсказанного: предсказание считается «хорошим»
         good_segments = []
@@ -103,7 +105,7 @@ def main():
             replaced = replace_segments(signal, bad_segments, good_segments)
         except Exception as e:
             print(f"[!] Ошибка при замене сегментов для {name}: {e}")
-            continue
+            # continue
 
         # 6. Визуализация
         try:
