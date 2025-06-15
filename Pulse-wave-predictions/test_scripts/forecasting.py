@@ -57,17 +57,34 @@ for filename in ['s1_walk', 's2_walk', 's3_walk']:
 
 df = pd.concat(all_dfs).reset_index(drop=True)
 
+raw_dfs = []
+for filename in ['s1_walk', 's2_walk', 's3_walk']:
+    record = wfdb.rdrecord(f'../test_data/{filename}')
+    signal = decimate(record.p_signal[:, 0], q=5)
+    signal = (signal - np.mean(signal)) / np.std(signal)
+    
+    segment_df = pd.DataFrame({
+        'unique_id': filename,
+        'ds': pd.date_range(start='2025-01-01', periods=len(signal), freq='20ms'),
+        'y': signal
+    })
+    raw_dfs.append(segment_df)
 
+raw_df = pd.concat(raw_dfs).reset_index(drop=True)
+raw_nf = NeuralForecast(
+    models=[NBEATS(input_size=512, h=100, max_steps=500, learning_rate=1e-3)],  # 128 прошлых точек → 50 шагов вперёд
+    freq='20ms'
+)
 nf = NeuralForecast(
-    models=[NBEATS(input_size=512, h=100, max_steps=300, learning_rate=1e-3)],  # 128 прошлых точек → 50 шагов вперёд
+    models=[NBEATS(input_size=512, h=100, max_steps=500, learning_rate=1e-3)],  # 128 прошлых точек → 50 шагов вперёд
     freq='20ms'
 )
 
-s1_df = df[df['unique_id'] == 's1_walk'].copy()
-
+s1_df = df[df['unique_id'] == 's2_walk'].copy()
+raw_s1_df = raw_df[raw_df['unique_id'] == 's2_walk'].copy()
 # Запускаем многократное прогнозирование
 forecast_df = recursive_forecast(nf, s1_df, repeats=10)
-
+raw_forecast_df = recursive_forecast(raw_nf, raw_s1_df, repeats=10)
 # nf.fit(df)
 # forecast_df = nf.predict(step_size=100, num_windows=20)
 # metrics_df = nf.evaluate(df, metrics=['mae', 'mse'])
@@ -94,4 +111,13 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.title('Прогноз PPG с использованием StatsForecast')
+
+
+plt.figure(figsize=(20, 10))
+plt.plot(raw_s1_df['ds'], raw_s1_df['y'], label='Оригинал', color='blue')
+plt.plot(raw_forecast_df['ds'], raw_forecast_df['NBEATS'], label='Прогноз', color='red', linestyle='--')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.title('Прогноз PPG с использованием StatsForecast без предобработки')
 plt.show()
