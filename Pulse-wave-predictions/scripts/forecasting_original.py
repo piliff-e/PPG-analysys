@@ -1,38 +1,108 @@
-import numpy as np
-from statsforecast import StatsForecast
-from statsforecast.models import AutoARIMA, MSTL, AutoCES
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import wfdb
+from neuralforecast import NeuralForecast
+from neuralforecast.models import NBEATS
+from scipy.signal import decimate, savgol_filter
 
 
-# Ваши данные (предположим, что filtered_ac уже загружен)
-# Пример данных:
-time = np.arange(1000)  # Временные метки
-ppg = np.sin(time * 0.1) + np.random.normal(0, 0.1, 1000)  # Имитация PPG
+def recursive_forecast(nf, start_df, repeats=10):
+    forecasts = []
+    current_df = start_df.copy()
 
-# Подготовка данных для StatsForecast (формат: уникальный_id, дата, значение)
-data = {
-    'unique_id': np.ones(len(ppg)),  # Один временной ряд
-    'ds': time,  # Временные метки
-    'y': ppg  # Значения PPG
-}
+    for i in range(repeats):
+        nf.fit(current_df)
 
-# Инициализация модели
-models = [
-    AutoARIMA(season_length=50),  # Автоматический ARIMA (предполагаем частоту пульса ~60 уд/мин)
-    MSTL(season_length=[50]),  # Модель с сезонностью
-    AutoCES()  # Exponential Smoothing
-]
+        forecast_df = nf.predict()
 
-sf = StatsForecast(models=models, freq=1)  # freq=1 (шаг времени = 1 единица)
+        # Удалим строки, где прогноз содержит NaN
+        forecast_df_clean = forecast_df.dropna(subset=["NBEATS"]).copy()
 
-# Прогноз на 50 шагов вперед
-forecast = sf.predict(h=50)
-print(forecast)
+        if forecast_df_clean.empty:
+            print(f"[!] Прогноз пуст на итерации {i}")
+            break
+
+        forecasts.append(forecast_df_clean)
+
+        # Добавляем предсказанные значения как новые наблюдения
+        new_block = forecast_df_clean.copy()
+        new_block["y"] = new_block["NBEATS"]
+        current_df = pd.concat(
+            [current_df, new_block[["unique_id", "ds", "y"]]]
+        ).reset_index(drop=True)
+
+    full_forecast = pd.concat(forecasts).reset_index(drop=True)
+    return full_forecast
+
+
+# record = wfdb.rdrecord('../data/s1_walk')  # Чтение данных
+# ppg_ac = decimate(record.p_signal[:, 0],q=5)  # AC-компонента (пульсовая волна)
+# time = np.arange(len(ppg_ac))  # Временные метки для вашего массива
+# wd, m = hp.process(ppg_ac, sample_rate=50)  # sample_rate влияет на "BPM" на графике -- измени, чтобы проверить
+
+
+all_dfs = []
+for filename in ["s1_walk", "s2_walk", "s3_walk"]:
+    record = wfdb.rdrecord(f"../test_data/{filename}")
+    signal = decimate(record.p_signal[:, 0], q=5)
+    signal = savgol_filter(signal, 15, 3)
+    signal = (signal - np.mean(signal)) / np.std(signal)
+
+    segment_df = pd.DataFrame(
+        {
+            "unique_id": filename,
+            "ds": pd.date_range(start="2025-01-01", periods=len(signal), freq="20ms"),
+            "y": signal,
+        }
+    )
+    all_dfs.append(segment_df)
+
+df = pd.concat(all_dfs).reset_index(drop=True)
+
+
+nf = NeuralForecast(
+    models=[
+        NBEATS(input_size=512, h=100, max_steps=300, learning_rate=1e-3)
+    ],  # 128 прошлых точек → 50 шагов вперёд
+    freq="20ms",
+)
+
+s1_df = df[df["unique_id"] == "s1_walk"].copy()
+
+# Запускаем многократное прогнозирование
+forecast_df = recursive_forecast(nf, s1_df, repeats=10)
+
+# nf.fit(df)
+# forecast_df = nf.predict(step_size=100, num_windows=20)
+# metrics_df = nf.evaluate(df, metrics=['mae', 'mse'])
+# print(metrics_df)
+# model = RNN(
+#     input_size=24,
+#     # hidden_size=64,
+#     # context_length=24,
+#     h=12,
+#     # horizon=12,
+#     max_steps=3,
+#     # learning_rate=1e-3
+#     enable_progress_bar=True
+# )
 
 # Визуализация
-plt.figure(figsize=(12, 6))
-plt.plot(time, ppg, label='Исходный сигнал', color='blue')
-plt.plot(forecast['ds'], forecast['AutoARIMA'], label='Прогноз (AutoARIMA)', color='red', linestyle='--')
+# hp.plotter(wd, m)
+
+plt.figure(figsize=(20, 10))
+plt.plot(s1_df["ds"], s1_df["y"], label="Оригинал", color="blue")
+# Прогноз
+plt.plot(
+    forecast_df["ds"],
+    forecast_df["NBEATS"],
+    label="Прогноз",
+    color="red",
+    linestyle="--",
+)
 plt.legend()
-plt.title('Прогноз PPG с использованием StatsForecast')
+plt.grid(True)
+plt.tight_layout()
+plt.title("Прогноз PPG с использованием StatsForecast")
 plt.show()
