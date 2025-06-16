@@ -137,7 +137,7 @@ def replace_bad_with_forecast(signal, bad_segments, nf, name, fs, N=512, K=100):
 # Пример использования в main:
 if __name__ == "__main__":
     # Параметры
-    record_name = "s11_sit"  # тестовая запись
+    record_name = "s13_sit"  # тестовая запись
     data_path = "../test_data"
     model_path = "../models"  # путь, где сохранена модель
     N = 512
