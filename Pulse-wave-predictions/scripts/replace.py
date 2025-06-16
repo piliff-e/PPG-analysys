@@ -1,9 +1,8 @@
 # import wfdb
-import numpy as np
 import heartpy as hp
 import matplotlib.pyplot as plt
+import numpy as np
 from shared import load_ppg
-
 
 # def load_ppg(record_name):
 #     """
@@ -26,7 +25,9 @@ def replace_segments(signal, bad_segments, good_segments):
         if len(good) != (b1 - b0):
             good = np.interp(
                 np.linspace(0, len(good), b1 - b0, endpoint=False),
-                np.arange(len(good)), good)
+                np.arange(len(good)),
+                good,
+            )
         out[b0:b1] = good
     return out
 
@@ -51,9 +52,9 @@ def analyze_with_heartpy(signal, fs, replaced):
     try:
         wd_orig, m_orig = hp.process(signal, sample_rate=fs)
         wd_rep, m_rep = hp.process(replaced, sample_rate=fs)
-        print('Original BPM:', m_orig['bpm'], '→ Replaced BPM:', m_rep['bpm'])
+        print("Original BPM:", m_orig["bpm"], "→ Replaced BPM:", m_rep["bpm"])
     except Exception as e:
-        print('Анализ при помощи HeartPy невозможен:', e)
+        print("Анализ при помощи HeartPy невозможен:", e)
 
 
 def plot_signals(orig, replaced, fs, bad_segments):
@@ -61,20 +62,20 @@ def plot_signals(orig, replaced, fs, bad_segments):
     Визуализация сигнала вместе с заменами "плохих" сегментов на "хорошие".
     """
     t = np.arange(len(orig)) / fs
-    plt.plot(t, orig, label='Оригинал')
-    plt.plot(t, replaced, alpha=0.7, label='После замены')
+    plt.plot(t, orig, label="Оригинал")
+    plt.plot(t, replaced, alpha=0.7, label="После замены")
     for b0, b1 in bad_segments:
-        plt.axvspan(b0 / fs, b1 / fs, color='red', alpha=0.2)
+        plt.axvspan(b0 / fs, b1 / fs, color="red", alpha=0.2)
     plt.legend()
-    plt.xlabel('Время (с)')
-    plt.title('PPG: замена плохих сегментов')
+    plt.xlabel("Время (с)")
+    plt.title("PPG: замена плохих сегментов")
     plt.tight_layout()
     plt.show()
 
 
 def main():
     # Загрузка данных
-    signal, fs = load_ppg('../test_data/s1_walk')
+    signal, fs = load_ppg("../test_data/s6_walk")
 
     # Создание "плохих" и "хороших" сегментов
     bad_segments, good_segments = manual_segments()
@@ -89,5 +90,5 @@ def main():
     analyze_with_heartpy(signal, fs, replaced)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
