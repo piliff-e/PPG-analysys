@@ -1,9 +1,12 @@
 # Пример использования bad_segment_detector.py:
+import matplotlib.pyplot as plt
 import numpy as np
 from bad_segment_detector import (
     detect_bad_cycles,
     extract_cycle_features,
+    peak_detection,
     train_envelope_model,
+    troughs_detection,
 )
 from shared import load_ppg
 
@@ -37,7 +40,6 @@ replaced_signal = replace_segments(sig_test, bad, good)
 plot_signals(sig_test, replaced_signal, fs_test, bad)
 """
 
-import matplotlib.pyplot as plt
 
 """
 # 1) Извлечём все циклы: признаки + интервалы
@@ -60,4 +62,44 @@ plt.xlabel("Время, с")
 plt.title("Сигнал PPG с границами циклов и подсветкой плохих")
 plt.legend()
 plt.tight_layout()
+plt.show()
+
+
+# Выбрать несколько временных окон, например [0:10с], [190:210с], [270:290с]
+for t0 in [0, 190, 270]:
+    start_idx = int(t0 * fs_test)
+    end_idx = int((t0 + 10) * fs_test)
+    seg = sig_test[start_idx:end_idx]
+    peaks = peak_detection(seg, fs_test)
+    troughs = troughs_detection(seg, peaks)
+    t = (np.arange(len(seg)) + start_idx) / fs_test
+    plt.figure(figsize=(8, 3))
+    plt.plot(t, seg, label="PPG")
+    plt.scatter((peaks + start_idx) / fs_test, seg[peaks], color="r", label="peaks")
+    plt.scatter(
+        (troughs + start_idx) / fs_test, seg[troughs], color="g", label="troughs"
+    )
+    plt.title(f"Разбиение на циклы в окне {t0}-{t0 + 10} с")
+    plt.legend()
+    plt.show()
+
+
+"""
+# row — строка df_test для цикла около 200 с
+s0, e0 = int(row['start']), int(row['end'])
+cycle = sig_test[s0:e0]
+t_cycle = np.arange(len(cycle)) / fs_test + row['time_mid_s'] - (e0-s0)/(2*fs_test)
+plt.figure()
+plt.plot(t_cycle, cycle)
+plt.title("Цикл около 200 с")
+plt.show()
+"""
+
+# Вычислите скользящее среднее и скользящее std по сигналу, чтобы увидеть, как меняется уровень сигнала и шум.
+window = int(fs_test * 5)  # 5-секундное окно
+mov_std = np.array(
+    [np.std(sig_test[i : i + window]) for i in range(0, len(sig_test) - window, window)]
+)
+plt.plot(mov_std)
+plt.title("Скользящий STD (5с) сигнала")
 plt.show()
