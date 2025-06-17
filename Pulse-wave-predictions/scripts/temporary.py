@@ -30,3 +30,15 @@ def generate_random_bad_segments(
     # Можно дополнительно объединить слишком близкие или пересекающиеся сегменты:
     # Но для простоты оставляем как есть
     return bad_segments
+
+
+def manual_segments():
+    """
+    Создание вручную "плохих" и "хороших" сегментов для теста.
+    """
+    bad = [(500, 700), (900, 1500), (2000, 2150), (3000, 3500), (5000, 5400)]
+    good = []
+    for b0, b1 in bad:
+        x = np.linspace(b0, b1)
+        good.append((b1 - b0) * np.sin(x))
+    return bad, good
