@@ -56,7 +56,7 @@ for filename in filenames:
 
 df = pd.concat(all_dfs).reset_index(drop=True)
 
-test_record = wfdb.rdrecord("../test_data/s11_sit")
+test_record = wfdb.rdrecord("../test_data/s1_walk")
 test_signal = decimate(test_record.p_signal[:, 0], q=5)
 test_signal = savgol_filter(test_signal, 15, 3)
 test_signal = (test_signal - np.mean(test_signal)) / np.std(test_signal)

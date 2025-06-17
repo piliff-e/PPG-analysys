@@ -53,24 +53,26 @@ def plot_signals(orig, replaced, fs, bad_segments):
     plt.show()
 
 
-"""
 def main():
     # Загрузка данных
     signal, fs = load_ppg("../test_data/s13_sit")
 
+    nf = NeuralForecast.load("../models")
     # Создание "плохих" и "хороших" сегментов
     # bad_segments, good_segments = manual_segments()
     bad_segments = generate_random_bad_segments(len(signal))
-    good_segments = build_good_segments_with_model(signal, bad_segments, nf, "s13_sit", fs) 
+    good_segments = build_good_segments_with_model(
+        signal, bad_segments, nf, "s13_sit", fs
+    )
 
     # Для replace_segments:
     filtered_bad = []
     good_arrays = []
-    for (b0,b1) in bad_segments:
+    for b0, b1 in bad_segments:
         # Найдём в good_info тот, что имеет тот же b0
-        for (s,e,arr) in good_segments:
+        for s, e, arr in good_segments:
             if s == b0:
-                filtered_bad.append((s,e))
+                filtered_bad.append((s, e))
                 good_arrays.append(arr)
                 break
     # Теперь:
@@ -83,6 +85,8 @@ def main():
 
     # Анализ при помощи HeartPy
     analyze_with_heartpy(signal, fs, replaced_signal)
+
+
 """
 
 
@@ -149,7 +153,7 @@ def main():
     # Опционально: анализ HeartPy:
     # from replace import analyze_with_heartpy
     # analyze_with_heartpy(signal, fs, replaced)
-
+"""
 
 if __name__ == "__main__":
     main()
