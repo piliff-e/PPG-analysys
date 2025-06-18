@@ -1,10 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import heartpy as hp
 import wfdb
 from scipy.signal import decimate
-from neuralforecast.models import RNN, NBEATS
+from neuralforecast.models import NBEATS
 from neuralforecast import NeuralForecast
 from scipy.signal import savgol_filter
 
@@ -30,14 +29,12 @@ nf = NeuralForecast(
     models=[NBEATS(input_size=500, h=100, max_steps=500, learning_rate=1e-3,batch_size=16)], 
     freq='20ms'
 )
-#ЧТОБЫ ДООБУЧИТЬ РАССКОММЕНТИРУЙ
+
+#ЧТОБЫ ДООБУЧИТЬ РАССКОММЕНТИРУЙ И УКАЖИ ПУТЬ К НУЖНОЙ МОДЕЛИ
 # nf = NeuralForecast.load('../models/v1')  
 
-# nf.models[0].load('../models/v2/version_2.pth')  # Загрузка модели из файла
 for i in range(10):
     nf.fit(df)
 
-# path_to_save = '../models/version_2.pth'
 nf.save(path='../models/v3', model_index=[0], overwrite=True)
-# nf.models[0].save(path_to_save)
 
