@@ -1,10 +1,13 @@
 import heartpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
-from build_good_segments import build_good_segments_with_model
+
+# from temporary import generate_random_bad_segments
+from forecasting.building_good_segments import (
+    build_good_segments_with_model,
+)  # или соответствующий импорт
 from neuralforecast import NeuralForecast
 from shared import load_ppg
-from temporary import generate_random_bad_segments
 
 
 def replace_segments(signal, bad_segments, good_segments):
@@ -53,6 +56,7 @@ def plot_signals(orig, replaced, fs, bad_segments):
     plt.show()
 
 
+"""
 def main():
     # Загрузка данных
     signal, fs = load_ppg("../test_data/s13_sit")
@@ -153,7 +157,10 @@ def main():
     # Опционально: анализ HeartPy:
     # from replace import analyze_with_heartpy
     # analyze_with_heartpy(signal, fs, replaced)
+
+
 """
 
 if __name__ == "__main__":
     main()
+"""
