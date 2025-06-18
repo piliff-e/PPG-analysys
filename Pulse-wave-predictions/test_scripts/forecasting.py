@@ -79,20 +79,16 @@ raw_df = pd.DataFrame({
 
 # raw_df = pd.concat(raw_dfs).reset_index(drop=True)
 # raw_nf = NeuralForecast(
-#     models=[NBEATS(input_size=512, h=100, max_steps=500, learning_rate=1e-3)],  # 128 прошлых точек → 50 шагов вперёд
+#     models=[NBEATS(input_size=512, h=100, max_steps=500, learning_rate=1e-3)], 
 #     freq='20ms'
 # ) 
-nf = NeuralForecast.load('../models')  
+nf = NeuralForecast.load('../models/v1')  
 # nf = NeuralForecast(models=[model], freq='20ms')
 # nf = NeuralForecast(
-#     models=[NBEATS(input_size=512, h=100, max_steps=1, learning_rate=1e-3,batch_size=8)],  # 128 прошлых точек → 50 шагов вперёд
+#     models=[NBEATS(input_size=512, h=100, max_steps=1, learning_rate=1e-3,batch_size=8)],  
 #     freq='20ms'
 # )
 # nf.fit(df)
-
-#UNCOMMENT TO TRAIN
-# path_to_save = '../models/version_1.pth'
-# nf.models[0].save(path_to_save)
 
 #UNCOMMENT TO PREDICT
 # s1_df = df[df['unique_id'] == 's11_sit'].copy()
