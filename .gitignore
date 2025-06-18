@@ -1,4 +1,6 @@
 __pycache__/
 .idea/
 .venv/
+lightning_logs/
+.DS_Store/
 #images/
