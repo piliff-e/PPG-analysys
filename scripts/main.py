@@ -1,131 +1,59 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import wfdb
-from neuralforecast import NeuralForecast
-from pyts.metrics import dtw
-from scipy.signal import decimate, savgol_filter
-from forecasting import recursive_forecast
+from forecasting import detect_and_replace_segments
+from plotting import plot_mismatches
+from preprocessing import load_and_preprocess, load_model
 
 
-def plot_mismatches(
-    orig_signal: np.ndarray, replaced_signal: np.ndarray, fs: float, bad_segments: list
-):
-    """
-    Рисует оригинальный сигнал и на участках bad_segments подкрашивает форму заменённого сигнала.
-    orig_signal, replaced_signal — numpy array одной длины.
-    bad_segments — список (start, end) индексов, где сигнал был заменён.
-    fs — частота дискретизации (Гц).
-    """
-    t = np.arange(len(orig_signal)) / fs
+def main():
+    # === 1. Настройки ===
+    record_name = "s13_sit"
+    data_path = "../test_data"
+    model_path = "../models/v3"
 
-    # Рисуем исходный сигнал нейтральным цветом (синий или серый)
-    plt.plot(t, orig_signal, linewidth=1, label="Оригинал")
+    # Параметры предобработки
+    decimate_q = 5
+    sg_window = 15
+    sg_poly = 3
 
-    first_replacement = (
-        True  # Флаг, чтобы пометить только первую заменённую линию в легенде
+    # Параметры прогнозирования и детекции
+    window_size = 500  # N и одновременно шаг
+    repeats = 5  # число итераций recursive_forecast
+    threshold = 16.0  # DTW-порог (можно вычислить скриптом compute_distance.py)
+    freq = "20ms"  # строка частоты, должна совпадать с обучением
+
+    # === 2. Загрузка и предобработка сигнала ===
+    signal, fs = load_and_preprocess(
+        record_name,
+        data_path,
+        decimate_q=decimate_q,
+        sg_window=sg_window,
+        sg_poly=sg_poly,
     )
+    print(f"[main] Загружен сигнал '{record_name}', длина={len(signal)}, fs={fs} Hz")
+    orig_signal = signal.copy()  # резервная копия для отрисовки
 
-    for s, e in bad_segments:
-        # ограничиваем в пределах длины массива
-        s0 = max(0, s)
-        e0 = min(len(orig_signal), e)
-        if s0 >= e0:
-            continue
+    # === 3. Загрузка модели ===
+    nf = load_model(model_path)
+    if nf is None:
+        return
 
-        # Подсветка фоном (не влияет на легенду)
-        plt.axvspan(s0 / fs, e0 / fs, color="red", alpha=0.2)
-
-        # Рисуем на этом участке исправленную форму
-        if first_replacement:
-            # первая замена: даём явную метку для легенды
-            plt.plot(
-                t[s0:e0],
-                replaced_signal[s0:e0],
-                color="red",
-                linewidth=1.5,
-                label="Исправлено",
-            )
-            first_replacement = False
-        else:
-            # последующие: без метки, чтобы не плодить записи в легенде
-            plt.plot(
-                t[s0:e0],
-                replaced_signal[s0:e0],
-                color="red",
-                linewidth=1.5,
-                label="_nolegend_",
-            )
-
-    plt.xlabel("Время, с")
-    plt.ylabel("Амплитуда PPG")
-    plt.title("PPG: оригинал (синий) и заменённые сегменты (красный)")
-    plt.legend(loc="upper right")
-    plt.tight_layout()
-    plt.show()
-
-
-record = wfdb.rdrecord("../test_data/s13_sit")
-signal = decimate(record.p_signal[:, 0], q=5)
-signal = savgol_filter(signal, 15, 3)
-signal = (signal - np.mean(signal)) / np.std(signal)
-fs = record.fs
-
-backup_signal = signal.copy()
-
-full_df = pd.DataFrame(
-    {
-        "unique_id": "segment",
-        "ds": pd.date_range(
-            start="2025-01-01", periods=len(backup_signal), freq="20ms"
-        ),
-        "y": backup_signal,
-    }
-)
-
-
-nf = NeuralForecast.load("../models/v3")
-
-bad_segments = []  # список кортежей (start_idx, end_idx) в исходном сигнале
-
-for i in range(500, len(signal), 500):
-    current_segment = signal[i : i + 500]
-    past_segment = signal[i - 500 : i]
-    segment_df = pd.DataFrame(
-        {
-            "unique_id": "past_segment",
-            "ds": pd.date_range(
-                start="2025-01-01", periods=len(past_segment), freq="20ms"
-            ),
-            "y": past_segment,
-        }
+    # === 4. Детекция и замена сегментов ===
+    replaced_signal, bad_segments = detect_and_replace_segments(
+        signal=signal,
+        nf=nf,
+        record_name=record_name,
+        window_size=window_size,
+        repeats=repeats,
+        threshold=threshold,
+        freq=freq,
     )
-
-    forecast_segment_df = recursive_forecast(nf, segment_df, repeats=5)
-    forecast_segment = forecast_segment_df["NBEATS"].values
-    if len(current_segment) < 500:
-        forecast_segment = forecast_segment[: len(current_segment)]
-
-    alignment = dtw(forecast_segment, current_segment)
-    if alignment > 16:
-        signal[i : i + 500] = forecast_segment
-        bad_segments.append((i, min(i + 500, len(signal))))
-        print(
-            f"[!] Обнаружено отклонение на сегменте {i} - {i}+500, DTW Distance: {alignment}"
-        )
+    if not bad_segments:
+        print("[main] Плохие сегменты не найдены. Завершаем.")
     else:
-        print(f"[+] Сегмент {i} - {i}+500 в норме, DTW Distance: {alignment}")
+        print(f"[main] Найдено и заменено сегментов: {bad_segments}")
 
-final_df = pd.DataFrame(
-    {
-        "unique_id": "full_signal",
-        "ds": pd.date_range(start="2025-01-01", periods=len(signal), freq="20ms"),
-        "y": signal,
-    }
-)
+    # === 5. Визуализация несовпадений ===
+    plot_mismatches(orig_signal, replaced_signal, fs, bad_segments)
 
-orig_signal = backup_signal  # или сохранённая копия до замен
-replaced_signal = signal  # текущий массив после замен
-# bad_segments собран в процессе
 
-plot_mismatches(orig_signal, replaced_signal, fs, bad_segments)
+if __name__ == "__main__":
+    main()
