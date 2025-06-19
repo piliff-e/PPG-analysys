@@ -6,6 +6,17 @@
 Вот [Google Dock](https://docs.google.com/document/d/1_jPtP8rYmllPkYXyO8yDc0u4-YSvDAZf6ic81Kd2i0A/edit?tab=t.0) с подробным описанием задачи.
 
 
+```
+scripts
+├── compute_distance.py   - Программа, вычисляющая оптимальное расстояние DTW
+├── dtw.py                - ???
+├── forecasting.py        - Программа, предсказывающая K новых точек сигнала по N предыдущим
+├── main.py               - Основная программа
+├── model_test.py         - ???
+├── train_basic_model.py  - Программа, обучающая модель предсказывать K новых точек сигнала по N предыдущим
+└── requirements.txt      - Список необходимых библиотек и их версий для работы проекта
+```
+
 * `/scripts` (сам код):
   - `plotting_manually.py` содержит комментарии. Там я разбираюсь в том, что в себе содержат скаченные файлы и как грамотно строить по ним графики.
   - `plotting_with_heartpy.py` рисует пульсовую волну буквально в паре строк при помощи библиотеки [HeartPy](https://python-heart-rate-analysis-toolkit.readthedocs.io/en/latest/).
