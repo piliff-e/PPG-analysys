@@ -7,7 +7,7 @@ def main():
     # === 1. Настройки ===
     record_name = "s13_sit"
     data_path = "../test_data"
-    model_path = "../models/v3"
+    model_path = "../models/v4"
 
     # Параметры предобработки
     decimate_q = 5
