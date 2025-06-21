@@ -2,11 +2,6 @@
 
 ## Предсказание поведения пульсовой волны
 
-```
-scripts
-
-```
-
 - `/scripts` (сам код):
 
   - `compute_distance.py` вычисляет пороговое значение оценки качества сигнала при помощи DTW
@@ -16,9 +11,10 @@ scripts
   - `requirements.txt` содержит писок необходимых библиотек и их версий для работы проекта
 
 - `/test_data` (тестовые данные):
-  - Взяли [отсюда](https://physionet.org/content/wrist/1.0.0/#files-panel) и отсюда.
+  - Взяли [отсюда](https://physionet.org/content/wrist/1.0.0/#files-panel) и [отсюда](https://physionet.org/content/pulse-transit-time-ppg/1.1.0/).
   - Все ссылки на тестовые данные:
-    - https://physionet.org/content/wrist/1.0.0/#files-panel (отсюда брал)
+    - https://physionet.org/content/wrist/1.0.0/#files-panel (использовались)
+    - https://physionet.org/content/pulse-transit-time-ppg/1.1.0/ (использовались)
     - https://physionet.org/content/bidmc/1.0.0/#files-panel
     - https://siplab.org/projects/WildPPG
     - https://archive.ics.uci.edu/dataset/495/ppg+dalia
