@@ -4,20 +4,21 @@
 
 - `/scripts` (сам код):
 
-  - `compute_distance.py` вычисляет пороговое значение оценки качества сигнала при помощи DTW
-  - `forecasting.py` - программа, предсказывающая K новых точек сигнала по N предыдущим
-  - `main.py` - основная программа
-  - train_basic_model.py - программа, обучающая модель предсказывать K новых точек сигнала по N предыдущим
-  - `requirements.txt` содержит писок необходимых библиотек и их версий для работы проекта
+  - `preprocessing.py` - содержит функции загрузки и предобработки данных.
+  - `forecasting.py` - программа, предсказывающая K новых точек сигнала по N предыдущим.
+  - `main.py` - основная программа.
+  - train_basic_model.py - программа, обучающая модель предсказывать K новых точек сигнала по N предыдущим.
+  - `compute_distance.py` вычисляет пороговое значение оценки качества сигнала при помощи DTW.
+  - `requirements.txt` содержит писок необходимых библиотек и их версий для работы проекта.
 
 - `/test_data` (тестовые данные):
   - Взяли [отсюда](https://physionet.org/content/wrist/1.0.0/#files-panel) и [отсюда](https://physionet.org/content/pulse-transit-time-ppg/1.1.0/).
-  - Все ссылки на тестовые данные:
-    - https://physionet.org/content/wrist/1.0.0/#files-panel (использовались)
-    - https://physionet.org/content/pulse-transit-time-ppg/1.1.0/ (использовались)
-    - https://physionet.org/content/bidmc/1.0.0/#files-panel
-    - https://siplab.org/projects/WildPPG
-    - https://archive.ics.uci.edu/dataset/495/ppg+dalia
+  <!-- - Все ссылки на тестовые данные: -->
+  - https://physionet.org/content/wrist/1.0.0/#files-panel (использовались)
+  - https://physionet.org/content/pulse-transit-time-ppg/1.1.0/ (использовались)
+  - https://physionet.org/content/bidmc/1.0.0/#files-panel
+  - https://siplab.org/projects/WildPPG
+  - https://archive.ics.uci.edu/dataset/495/ppg+dalia
 
 ---
 
