@@ -22,6 +22,8 @@
   - https://siplab.org/projects/WildPPG
   - https://archive.ics.uci.edu/dataset/495/ppg+dalia
 
+- `/unused` содержит файлы, не использующиеся в нынешней реализации.
+
 ---
 
 ### Постановка задачи из ИАП РАН
