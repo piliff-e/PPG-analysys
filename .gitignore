@@ -3,4 +3,5 @@ __pycache__/
 .venv/
 lightning_logs/
 .DS_Store/
+unused/
 #images/
